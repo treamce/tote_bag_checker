@@ -45,7 +45,7 @@ with col1:
     attendance_file = st.file_uploader("Upload Booking System CSV", type=["csv"])
 with col2: 
 # Upload email list 
-    email_file = st.file_uploader("Upload Email List CSV", type=["csv"])
+    email_file = st.file_uploader("Upload Previous Recipients Email List CSV", type=["csv"])
 
 ## Only run if both files are uploaded
 if attendance_file and email_file:
@@ -95,7 +95,7 @@ if attendance_file and email_file:
         summary_col2.metric("✨ 100 Class Bags", int((new_eligible['Milestone'] == 100).sum()))
         summary_col3.metric("🎉 150+ Class Bags", int((new_eligible['Milestone'] >= 150).sum()))       
 
-        st.subheader(f"New bags to gift ({len(new_eligible)})")
+        st.subheader(f"New bags to give out ({len(new_eligible)})")
         
         # Display table with relevant columns from your new file
         display_df = new_eligible[['Full name', 'Total attendances', 'Milestone', 'Email']]
