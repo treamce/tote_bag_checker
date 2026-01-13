@@ -40,13 +40,9 @@ if attendance_file and email_file:
     emails_received_df = pd.read_csv(email_file)
 
     ## Step 2: Clean up the data columns
-    df.columns = df.columns.str.strip().str.lower()
-    emails_received_df.columns = emails_received_df.columns.str.strip().str.lower()
-
-    # Define our targets based on your file structure
-    name_col = 'name' if 'name' in df.columns else df.columns[0]
-    book_col = 'bookings' if 'bookings' in df.columns else 'bookings'
-    mail_col = 'email' if 'email' in df.columns else 'email'
+    # We strip extra spaces and make lowercase for easy matching
+    df.columns = df.columns.str.strip()
+    emails_received_df.columns = emails_received_df.columns.str.strip()
 
     ## Step 3: Milestone logic 
     def get_milestone(n): 
@@ -62,30 +58,33 @@ if attendance_file and email_file:
             return 0
         return 0
 
-    df['milestone'] = df[book_col].apply(get_milestone)
-    eligible = df[df['milestone'] > 0].copy()
+    # Using 'Total attendances' from your new file format
+    df['Milestone'] = df['Total attendances'].apply(get_milestone)
+    eligible = df[df['Milestone'] > 0].copy()
 
     ## Step 4: Cross reference with the Email List
-    already_received_emails = set(emails_received_df['email'].astype(str).str.strip().str.lower())
-    eligible['already received?'] = eligible[mail_col].astype(str).str.strip().str.lower().isin(already_received_emails)
+    # Match by Email column in both files
+    already_received_emails = set(emails_received_df['Email'].astype(str).str.strip().str.lower())
+    eligible['Already received?'] = eligible['Email'].astype(str).str.strip().str.lower().isin(already_received_emails)
 
     ## Step 5: Filter and summary 
-    new_eligible = eligible[eligible['already received?'] == False].copy()
+    # Only show people who reached a milestone and are NOT in the email list
+    new_eligible = eligible[eligible['Already received?'] == False].copy()
 
     st.divider()
 
     if not new_eligible.empty:
         # Display a summary of totals 
         summary_col1, summary_col2, summary_col3 = st.columns(3) 
-        summary_col1.metric("🎒 50 Class Bags", int((new_eligible['milestone'] == 50).sum()))
-        summary_col2.metric("🎁 100 Class Bags", int((new_eligible['milestone'] == 100).sum()))
-        summary_col3.metric("✨ 150+ Class Bags", int((new_eligible['milestone'] >= 150).sum()))       
+        summary_col1.metric("🎒 50 Class Bags", int((new_eligible['Milestone'] == 50).sum()))
+        summary_col2.metric("🎁 100 Class Bags", int((new_eligible['Milestone'] == 100).sum()))
+        summary_col3.metric("✨ 150+ Class Bags", int((new_eligible['Milestone'] >= 150).sum()))       
 
         st.subheader(f"New bags to gift ({len(new_eligible)})")
         
-        # Display table
-        display_df = new_eligible[[name_col, book_col, 'milestone', mail_col]]
-        display_df.columns = ['Name', 'Total Bookings', 'Milestone', 'Email']
+        # Display table with relevant columns from your new file
+        display_df = new_eligible[['Full name', 'Total attendances', 'Milestone', 'Email']]
+        display_df.columns = ['Name', 'Attendances', 'Milestone', 'Email']
         st.dataframe(display_df, use_container_width=True)
 
         ## Step 6: Download 
