@@ -3,12 +3,12 @@
 
 Welcome to the **Tote Bag Tracker**! This tool was built to help you easily identify who has reached their class milestones (50, 100, 150, etc.) and who still needs to receive their bag.
 
-## 📝 How it works
+## How it works
 The app compares your **current student totals** against a **list of past recipients**. If a student has hit a milestone but their name isn't on the "already received" list, they will pop up on your list!
 
 ---
 
-## 🚀 How to use it
+## How to use 
 
 ### 1. Prepare your files
 You will need two CSV files:
@@ -26,7 +26,7 @@ Once the table appears, click the **"Download Tote Bag List as CSV"** button to 
 
 ---
 
-## ⚠️ Important Bits <3
+## Important Bits <3
 * **Matching Names:** The app matches by name. 
 * **File Format:** Make sure both files are saved as **.csv** (not Excel .xlsx).
 * **Privacy:** This app processes data in your browser session. Data is not saved or stored anywhere once you close the tab.
