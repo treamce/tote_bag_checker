@@ -5,21 +5,36 @@ import streamlit as st
 import pandas as pd 
 
 ## Set up the Streamlit app page 
-st.set_page_config(page_title="Tote Bag Tracker", page_icon="🛍️", layout="wide")
+st.set_page_config(page_title="Tote Bag Tracker", page_icon="🧡", layout="wide")
 
 ## --- Styling ---
 st.markdown("""
     <style>
+    /* Change Metric colors to Orange */
+    [data-testid="stMetricValue"] {
+        color: #f48c36 !important;
+    }
     .stMetric {
         background-color: #ffffff;
         padding: 15px;
         border-radius: 10px;
         box-shadow: 0px 2px 10px rgba(0,0,0,0.05);
+        border: 1px solid #f48c36;
+    }
+    /* Change Button color to Orange */
+    div.stButton > button:first-child {
+        background-color: #f48c36;
+        color: white;
+        border: none;
+    }
+    div.stButton > button:first-child:hover {
+        background-color: #e67e22;
+        border: none;
     }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🛍️ Tote Bag Tracker")
+st.title("🧡 Tote Bag Tracker")
 st.write("Upload bookings to see who has earned a tote bag <3")
 
 ## Step 1 : Upload files
@@ -76,9 +91,9 @@ if attendance_file and email_file:
     if not new_eligible.empty:
         # Display a summary of totals 
         summary_col1, summary_col2, summary_col3 = st.columns(3) 
-        summary_col1.metric("🎒 50 Class Bags", int((new_eligible['Milestone'] == 50).sum()))
-        summary_col2.metric("🎁 100 Class Bags", int((new_eligible['Milestone'] == 100).sum()))
-        summary_col3.metric("✨ 150+ Class Bags", int((new_eligible['Milestone'] >= 150).sum()))       
+        summary_col1.metric("🧡 50 Class Bags", int((new_eligible['Milestone'] == 50).sum()))
+        summary_col2.metric("✨ 100 Class Bags", int((new_eligible['Milestone'] == 100).sum()))
+        summary_col3.metric("🎉 150+ Class Bags", int((new_eligible['Milestone'] >= 150).sum()))       
 
         st.subheader(f"New bags to gift ({len(new_eligible)})")
         
@@ -90,14 +105,14 @@ if attendance_file and email_file:
         ## Step 6: Download 
         csv_data = display_df.to_csv(index=False).encode('utf-8')
         st.download_button(
-            label="Download Tote Bag List as CSV",
+            label="Download Tote Bag List (CSV)",
             data=csv_data,
-            file_name='tote_bag_eligibility.csv',
+            file_name='updated_tote_bags.csv',
             mime='text/csv'
         )                  
     else: 
         st.balloons()
-        st.success("Everyone is up to date with their tote bags! <3")
+        st.success("Everyone is up to date with their tote bags!")
 
 else: 
     st.info("Please upload both the Booking System CSV and the Email List CSV please <3")
