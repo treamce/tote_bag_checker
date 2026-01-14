@@ -10,13 +10,19 @@ st.set_page_config(page_title="J&S Milestone Tracker", page_icon="🧡", layout=
 ## --- Styling ---
 st.markdown("""
     <style>
-    /* Change Metric colors to Orange */
+    /* Metric Value (The Number) */
     [data-testid="stMetricValue"] {
         color: #f48c36 !important;
     }
+    /* Metric Label (The Heading) */
+    [data-testid="stMetricLabel"] p {
+        font-size: 22px !important;
+        font-weight: bold !important;
+        color: #333333 !important;
+    }
     .stMetric {
         background-color: #ffffff;
-        padding: 10px;
+        padding: 15px;
         border-radius: 10px;
         box-shadow: 0px 2px 10px rgba(0,0,0,0.05);
         border: 1px solid #f48c36;
@@ -56,7 +62,7 @@ if attendance_file and email_file:
     df.columns = df.columns.str.strip()
     emails_received_df.columns = emails_received_df.columns.str.strip()
 
-    ## Step 3: Milestone logic (Up to 350+)
+    ## Step 3: Milestone logic 
     def get_milestone(n): 
         try:
             n = int(float(n))
@@ -98,41 +104,39 @@ if attendance_file and email_file:
     st.divider()
 
     if not new_eligible.empty:
-        # Step 5: Summary with 8 Specific Buckets (Two rows)
+        # Step 5: Summary with 8 Specific Buckets
         row1_col1, row1_col2, row1_col3, row1_col4 = st.columns(4)
-        row1_col1.metric("🧡 50-99", len(new_eligible[new_eligible['Milestone'] == 50]))
-        row1_col2.metric("✨ 100-149", len(new_eligible[new_eligible['Milestone'] == 100]))
-        row1_col3.metric("🎉 150-199", len(new_eligible[new_eligible['Milestone'] == 150]))
-        row1_col4.metric("🔥 200-249", len(new_eligible[new_eligible['Milestone'] == 200]))
+        row1_col1.metric("50-99", len(new_eligible[new_eligible['Milestone'] == 50]))
+        row1_col2.metric("100-149", len(new_eligible[new_eligible['Milestone'] == 100]))
+        row1_col3.metric("150-199", len(new_eligible[new_eligible['Milestone'] == 150]))
+        row1_col4.metric("200-249", len(new_eligible[new_eligible['Milestone'] == 200]))
 
         row2_col1, row2_col2, row2_col3, row2_col4 = st.columns(4)
-        row2_col1.metric("🏅 250-299", len(new_eligible[new_eligible['Milestone'] == 250]))
-        row2_col2.metric("⭐ 300-349", len(new_eligible[new_eligible['Milestone'] == 300]))
-        row2_col3.metric("👑 350+", len(new_eligible[new_eligible['Milestone'] == 350]))
-        row2_col4.metric("📊 Total New", len(new_eligible))
+        row2_col1.metric("250-299", len(new_eligible[new_eligible['Milestone'] == 250]))
+        row2_col2.metric("300-349", len(new_eligible[new_eligible['Milestone'] == 300]))
+        row2_col3.metric("350+", len(new_eligible[new_eligible['Milestone'] == 350]))
+        row2_col4.metric("Total New", len(new_eligible))
 
         # --- Enhanced Row Shading Logic ---
         def style_rows(row):
             m = row['Milestone']
-            # Using a consistent orange gradient
             colors = {
-                50:  'background-color: #fffaf0; color: #8a5a00;', # Lightest
+                50:  'background-color: #fffaf0; color: #8a5a00;', 
                 100: 'background-color: #fff3e0; color: #8a5a00;', 
                 150: 'background-color: #ffe0b2; color: #5f3a00;', 
                 200: 'background-color: #ffcc80; color: #4e2f00;', 
                 250: 'background-color: #ffb74d; color: #000000;', 
                 300: 'background-color: #ffa726; color: #000000;', 
-                350: 'background-color: #fb8c00; color: #ffffff;'  # Darkest
+                350: 'background-color: #fb8c00; color: #ffffff;'  
             }
             background = colors.get(m, '')
             return [background] * len(row)
 
-        st.subheader(f"📋 New Milestones to Action ({len(new_eligible)})")
+        st.subheader(f"📋 New Milestones({len(new_eligible)})")
         
         display_df = new_eligible[['Full name', 'Total attendances', 'Milestone', 'Email']]
         display_df.columns = ['Name', 'Attendances', 'Milestone', 'Email']
         
-        # Apply the row-wide style
         styled_df = display_df.sort_values('Milestone', ascending=False).style.apply(style_rows, axis=1)
         st.dataframe(styled_df, use_container_width=True)
 
@@ -147,7 +151,7 @@ if attendance_file and email_file:
         st.divider()
         
         st.subheader("Master Log Update")
-        st.info("Add these rows to your 'Previous Recipients' CSV history.")
+        st.info("Add these rows to your 'Previous Recipients' CSV history to keep the tracker accurate.")
         log_update = new_eligible[['Email', 'Milestone']].copy()
         st.dataframe(log_update, use_container_width=True)
         
