@@ -1,11 +1,11 @@
-## Tote Bag Tracker!! <3
+## Milestone Tracker!! <3
 
 ## Import necessary libraries
 import streamlit as st 
 import pandas as pd 
 
 ## Set up the Streamlit app page 
-st.set_page_config(page_title="Tote Bag Tracker", page_icon="🧡", layout="wide")
+st.set_page_config(page_title="J&S MilestoneTracker", page_icon="🧡", layout="wide")
 
 ## --- Styling ---
 st.markdown("""
@@ -34,8 +34,10 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🧡 Tote Bag Tracker")
-st.write("Upload bookings to see who has earned a tote bag <3")
+st.title("🧡 J&S Milestone Tracker")
+st.write("Upload bookings to see who has hit new milestones <3")
+
+######
 
 ## Step 1 : Upload files
 col1, col2 = st.columns(2)
@@ -91,11 +93,11 @@ if attendance_file and email_file:
     if not new_eligible.empty:
         # Display a summary of totals 
         summary_col1, summary_col2, summary_col3 = st.columns(3) 
-        summary_col1.metric("🧡 50 Class Bags", int((new_eligible['Milestone'] == 50).sum()))
-        summary_col2.metric("✨ 100 Class Bags", int((new_eligible['Milestone'] == 100).sum()))
-        summary_col3.metric("🎉 150+ Class Bags", int((new_eligible['Milestone'] >= 150).sum()))       
+        summary_col1.metric("🧡 50 Total Attendances", int((new_eligible['Milestone'] == 50).sum()))
+        summary_col2.metric("✨ 100 Total Attendances", int((new_eligible['Milestone'] == 100).sum()))
+        summary_col3.metric("🎉 150+ Total Attendances", int((new_eligible['Milestone'] >= 150).sum()))       
 
-        st.subheader(f"New bags to give out ({len(new_eligible)})")
+        st.subheader(f"New Milestones ({len(new_eligible)})")
         
         # Display table with relevant columns from your new file
         display_df = new_eligible[['Full name', 'Total attendances', 'Milestone', 'Email']]
@@ -105,14 +107,14 @@ if attendance_file and email_file:
         ## Step 6: Download 
         csv_data = display_df.to_csv(index=False).encode('utf-8')
         st.download_button(
-            label="Download Tote Bag List (CSV)",
+            label="Download Milestone List (CSV)",
             data=csv_data,
-            file_name='updated_tote_bags.csv',
+            file_name='updated_milestones.csv',
             mime='text/csv'
         )                  
     else: 
         st.balloons()
-        st.success("Everyone is up to date with their tote bags!")
+        st.success("Everyone is up to date with their milestones!")
 
 else: 
     st.info("Please upload both the Booking System CSV and the Email List CSV please <3")
