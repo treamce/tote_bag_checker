@@ -14,7 +14,7 @@ st.markdown("""
     [data-testid="stMetricValue"] {
         color: #f48c36 !important;
     }
-    /* Metric Label (The Heading) */
+    /* Metric Label (The Heading) - Now Bigger and Bolder */
     [data-testid="stMetricLabel"] p {
         font-size: 22px !important;
         font-weight: bold !important;
@@ -104,18 +104,18 @@ if attendance_file and email_file:
     st.divider()
 
     if not new_eligible.empty:
-        # Step 5: Summary with 8 Specific Buckets
+        # Step 5: Summary with 8 Specific Buckets and Emojis
         row1_col1, row1_col2, row1_col3, row1_col4 = st.columns(4)
-        row1_col1.metric("50-99", len(new_eligible[new_eligible['Milestone'] == 50]))
-        row1_col2.metric("100-149", len(new_eligible[new_eligible['Milestone'] == 100]))
-        row1_col3.metric("150-199", len(new_eligible[new_eligible['Milestone'] == 150]))
-        row1_col4.metric("200-249", len(new_eligible[new_eligible['Milestone'] == 200]))
+        row1_col1.metric("🧡 50-99", len(new_eligible[new_eligible['Milestone'] == 50]))
+        row1_col2.metric("✨ 100-149", len(new_eligible[new_eligible['Milestone'] == 100]))
+        row1_col3.metric("🎉 150-199", len(new_eligible[new_eligible['Milestone'] == 150]))
+        row1_col4.metric("🔥 200-249", len(new_eligible[new_eligible['Milestone'] == 200]))
 
         row2_col1, row2_col2, row2_col3, row2_col4 = st.columns(4)
-        row2_col1.metric("250-299", len(new_eligible[new_eligible['Milestone'] == 250]))
-        row2_col2.metric("300-349", len(new_eligible[new_eligible['Milestone'] == 300]))
-        row2_col3.metric("350+", len(new_eligible[new_eligible['Milestone'] == 350]))
-        row2_col4.metric("Total New", len(new_eligible))
+        row2_col1.metric("🏅 250-299", len(new_eligible[new_eligible['Milestone'] == 250]))
+        row2_col2.metric("⭐ 300-349", len(new_eligible[new_eligible['Milestone'] == 300]))
+        row2_col3.metric("👑 350+", len(new_eligible[new_eligible['Milestone'] == 350]))
+        row2_col4.metric("📊 Total New", len(new_eligible))
 
         # --- Enhanced Row Shading Logic ---
         def style_rows(row):
@@ -132,24 +132,26 @@ if attendance_file and email_file:
             background = colors.get(m, '')
             return [background] * len(row)
 
-        st.subheader(f"📋 New Milestones({len(new_eligible)})")
+        st.subheader(f"📋 New Milestones ({len(new_eligible)})")
         
         display_df = new_eligible[['Full name', 'Total attendances', 'Milestone', 'Email']]
         display_df.columns = ['Name', 'Attendances', 'Milestone', 'Email']
         
+        # Display with row styling
         styled_df = display_df.sort_values('Milestone', ascending=False).style.apply(style_rows, axis=1)
         st.dataframe(styled_df, use_container_width=True)
 
         action_csv = display_df.to_csv(index=False).encode('utf-8')
         st.download_button(
-            label="Download Action List (CSV)",
+            label="Download List (CSV)",
             data=action_csv,
-            file_name='attendances_to_action.csv',
+            file_name='attendances_action.csv',
             mime='text/csv'
         ) 
 
         st.divider()
         
+        # Master Log Update (Emoji removed)
         st.subheader("Master Log Update")
         st.info("Add these rows to your 'Previous Recipients' CSV history to keep the tracker accurate.")
         log_update = new_eligible[['Email', 'Milestone']].copy()
