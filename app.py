@@ -16,7 +16,7 @@ st.markdown("""
     }
     .stMetric {
         background-color: #ffffff;
-        padding: 15px;
+        padding: 10px;
         border-radius: 10px;
         box-shadow: 0px 2px 10px rgba(0,0,0,0.05);
         border: 1px solid #f48c36;
@@ -56,7 +56,7 @@ if attendance_file and email_file:
     df.columns = df.columns.str.strip()
     emails_received_df.columns = emails_received_df.columns.str.strip()
 
-    ## Step 3: Milestone logic 
+    ## Step 3: Milestone logic (Up to 350+)
     def get_milestone(n): 
         try:
             n = int(float(n))
@@ -71,12 +71,10 @@ if attendance_file and email_file:
             return 0
         return 0
 
-    # Using 'Total attendances' from your file format
     df['Milestone'] = df['Total attendances'].apply(get_milestone)
     eligible = df[df['Milestone'] > 0].copy()
 
-    ## Step 4: Cross reference with the Email List
-    # We now check Email + Milestone so they can show up for 100 even if they've had 50
+    ## Step 4: Multi-Milestone Cross Reference
     if 'Email' in emails_received_df.columns and 'Milestone' in emails_received_df.columns:
         emails_received_df['History_Key'] = (
             emails_received_df['Email'].astype(str).str.strip().str.lower() + 
@@ -92,8 +90,6 @@ if attendance_file and email_file:
 
         already_received_keys = set(emails_received_df['History_Key'])
         eligible['Already received?'] = eligible['Current_Key'].isin(already_received_keys)
-        
-        # Only show people who reached a milestone and are NOT in the list for THIS specific milestone
         new_eligible = eligible[eligible['Already received?'] == False].copy()
     else:
         st.error("Wait! The 'Previous Recipients' CSV needs an 'Email' and a 'Milestone' column for this to work. <3")
@@ -102,50 +98,56 @@ if attendance_file and email_file:
     st.divider()
 
     if not new_eligible.empty:
-        # Step 5: Summary with 4 Buckets
-        summary_col1, summary_col2, summary_col3, summary_col4 = st.columns(4) 
-        summary_col1.metric("🧡 50-99 Attendances", len(new_eligible[new_eligible['Milestone'] == 50]))
-        summary_col2.metric("✨ 100-149 Attendances", len(new_eligible[new_eligible['Milestone'] == 100]))
-        summary_col3.metric("🎉 150-199 Attendances", len(new_eligible[new_eligible['Milestone'] == 150]))
-        summary_col4.metric("🔥 200-350 Attendances", len(new_eligible[new_eligible['Milestone'] >= 200]))
+        # Step 5: Summary with 8 Specific Buckets (Two rows)
+        row1_col1, row1_col2, row1_col3, row1_col4 = st.columns(4)
+        row1_col1.metric("🧡 50-99", len(new_eligible[new_eligible['Milestone'] == 50]))
+        row1_col2.metric("✨ 100-149", len(new_eligible[new_eligible['Milestone'] == 100]))
+        row1_col3.metric("🎉 150-199", len(new_eligible[new_eligible['Milestone'] == 150]))
+        row1_col4.metric("🔥 200-249", len(new_eligible[new_eligible['Milestone'] == 200]))
 
-        # --- Shading Logic ---
-        def color_milestones(val):
+        row2_col1, row2_col2, row2_col3, row2_col4 = st.columns(4)
+        row2_col1.metric("🏅 250-299", len(new_eligible[new_eligible['Milestone'] == 250]))
+        row2_col2.metric("⭐ 300-349", len(new_eligible[new_eligible['Milestone'] == 300]))
+        row2_col3.metric("👑 350+", len(new_eligible[new_eligible['Milestone'] == 350]))
+        row2_col4.metric("📊 Total New", len(new_eligible))
+
+        # --- Enhanced Row Shading Logic ---
+        def style_rows(row):
+            m = row['Milestone']
+            # Using a consistent orange gradient
             colors = {
-                50:  'background-color: #fff3e0', 
-                100: 'background-color: #ffe0b2', 
-                150: 'background-color: #ffcc80', 
-                200: 'background-color: #ffb74d', 
-                250: 'background-color: #ffa726', 
-                300: 'background-color: #fb8c00', 
-                350: 'background-color: #f4511e'  
+                50:  'background-color: #fffaf0; color: #8a5a00;', # Lightest
+                100: 'background-color: #fff3e0; color: #8a5a00;', 
+                150: 'background-color: #ffe0b2; color: #5f3a00;', 
+                200: 'background-color: #ffcc80; color: #4e2f00;', 
+                250: 'background-color: #ffb74d; color: #000000;', 
+                300: 'background-color: #ffa726; color: #000000;', 
+                350: 'background-color: #fb8c00; color: #ffffff;'  # Darkest
             }
-            return colors.get(val, '')
+            background = colors.get(m, '')
+            return [background] * len(row)
 
-        st.subheader(f"New Milestones <3 ({len(new_eligible)})")
+        st.subheader(f"📋 New Milestones to Action ({len(new_eligible)})")
         
-        # Display table with relevant columns
         display_df = new_eligible[['Full name', 'Total attendances', 'Milestone', 'Email']]
         display_df.columns = ['Name', 'Attendances', 'Milestone', 'Email']
         
-        # Apply Shading
-        styled_df = display_df.sort_values('Milestone').style.applymap(color_milestones, subset=['Milestone'])
+        # Apply the row-wide style
+        styled_df = display_df.sort_values('Milestone', ascending=False).style.apply(style_rows, axis=1)
         st.dataframe(styled_df, use_container_width=True)
 
-        ## Step 6: Download Buttons
         action_csv = display_df.to_csv(index=False).encode('utf-8')
         st.download_button(
             label="Download Action List (CSV)",
             data=action_csv,
-            file_name='new_milestones.csv',
+            file_name='attendances_to_action.csv',
             mime='text/csv'
         ) 
 
         st.divider()
         
-        # Master Log Output for copy-pasting
         st.subheader("Master Log Update")
-        st.info("Add these rows to your 'Previous Recipients' CSV to keep history updated.")
+        st.info("Add these rows to your 'Previous Recipients' CSV history.")
         log_update = new_eligible[['Email', 'Milestone']].copy()
         st.dataframe(log_update, use_container_width=True)
         
