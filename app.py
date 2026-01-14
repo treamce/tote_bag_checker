@@ -119,7 +119,6 @@ if attendance_file and email_file:
             mime='text/csv'
         )                   
     else: 
-        st.balloons()
         st.success("Everyone is up to date with their rewards!")
 
 else: 
