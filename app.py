@@ -1,19 +1,14 @@
-## Milestone Tracker!! <3
+## J&S Milestone Tracker!! <3
 
-## Import necessary libraries
 import streamlit as st 
 import pandas as pd 
 
-## Set up the Streamlit app page 
-st.set_page_config(page_title="J&S MilestoneTracker", page_icon="🧡", layout="wide")
+st.set_page_config(page_title="J&S Milestone Tracker", page_icon="🧡", layout="wide")
 
 ## --- Styling ---
 st.markdown("""
     <style>
-    /* Change Metric colors to Orange */
-    [data-testid="stMetricValue"] {
-        color: #f48c36 !important;
-    }
+    [data-testid="stMetricValue"] { color: #f48c36 !important; }
     .stMetric {
         background-color: #ffffff;
         padding: 15px;
@@ -21,7 +16,6 @@ st.markdown("""
         box-shadow: 0px 2px 10px rgba(0,0,0,0.05);
         border: 1px solid #f48c36;
     }
-    /* Change Button color to Orange */
     div.stButton > button:first-child {
         background-color: #f48c36;
         color: white;
@@ -37,31 +31,23 @@ st.markdown("""
 st.title("🧡 J&S Milestone Tracker")
 st.write("Upload bookings to see who has hit new milestones <3")
 
-######
-
 ## Step 1 : Upload files
 col1, col2 = st.columns(2)
 
 with col1: 
-# Upload booking system csv file
     attendance_file = st.file_uploader("Upload Booking System CSV", type=["csv"])
 with col2: 
-# Upload email list 
-    email_file = st.file_uploader("Upload Previous Recipients Email List CSV", type=["csv"])
+    email_file = st.file_uploader("Upload Previous Recipients List (CSV)", type=["csv"])
 
-## Only run if both files are uploaded
 if attendance_file and email_file:
-
-    # Fit into tables 
     df = pd.read_csv(attendance_file)
-    emails_received_df = pd.read_csv(email_file)
+    history_df = pd.read_csv(email_file)
 
-    ## Step 2: Clean up the data columns
-    # We strip extra spaces and make lowercase for easy matching
+    ## Step 2: Clean up
     df.columns = df.columns.str.strip()
-    emails_received_df.columns = emails_received_df.columns.str.strip()
+    history_df.columns = history_df.columns.str.strip()
 
-    ## Step 3: Milestone logic 
+    ## Step 3: Milestone logic (Up to 300)
     def get_milestone(n): 
         try:
             n = int(float(n))
@@ -75,46 +61,66 @@ if attendance_file and email_file:
             return 0
         return 0
 
-    # Using 'Total attendances' from your new file format
     df['Milestone'] = df['Total attendances'].apply(get_milestone)
     eligible = df[df['Milestone'] > 0].copy()
 
-    ## Step 4: Cross reference with the Email List
-    # Match by Email column in both files
-    already_received_emails = set(emails_received_df['Email'].astype(str).str.strip().str.lower())
-    eligible['Already received?'] = eligible['Email'].astype(str).str.strip().str.lower().isin(already_received_emails)
+    ## Step 4: Multi-Milestone Cross Reference
+    if 'Email' in history_df.columns and 'Milestone' in history_df.columns:
+        # Create keys to compare current status vs history
+        history_df['History_Key'] = (
+            history_df['Email'].astype(str).str.strip().str.lower() + 
+            "-" + 
+            history_df['Milestone'].astype(str).str.replace('.0', '', regex=False)
+        )
+        
+        eligible['Current_Key'] = (
+            eligible['Email'].astype(str).str.strip().str.lower() + 
+            "-" + 
+            eligible['Milestone'].astype(str)
+        )
 
-    ## Step 5: Filter and summary 
-    # Only show people who reached a milestone and are NOT in the email list
-    new_eligible = eligible[eligible['Already received?'] == False].copy()
+        already_rewarded_keys = set(history_df['History_Key'])
+        new_eligible = eligible[~eligible['Current_Key'].isin(already_rewarded_keys)].copy()
+    else:
+        st.error("Error: The 'Previous Recipients' file must have 'Email' and 'Milestone' columns!")
+        new_eligible = pd.DataFrame()
 
     st.divider()
 
     if not new_eligible.empty:
-        # Display a summary of totals 
-        summary_col1, summary_col2, summary_col3 = st.columns(3) 
-        summary_col1.metric("🧡 50 Total Attendances", int((new_eligible['Milestone'] == 50).sum()))
-        summary_col2.metric("✨ 100 Total Attendances", int((new_eligible['Milestone'] == 100).sum()))
-        summary_col3.metric("🎉 150+ Total Attendances", int((new_eligible['Milestone'] >= 150).sum()))       
+        # Summary Metrics
+        m1, m2, m3, m4 = st.columns(4) 
+        m1.metric("🧡 50-100", len(new_eligible[new_eligible['Milestone'].isin([50, 100])]))
+        m2.metric("✨ 150-200", len(new_eligible[new_eligible['Milestone'].isin([150, 200])]))
+        m3.metric("🎉 250-300", len(new_eligible[new_eligible['Milestone'].isin([250, 300])]))
+        m4.metric("🔥 Total New", len(new_eligible))
 
-        st.subheader(f"New Milestones ({len(new_eligible)})")
-        
-        # Display table with relevant columns from your new file
+        # Output 1: Friendly display for checking names
+        st.subheader("📋 New Milestones to Action")
         display_df = new_eligible[['Full name', 'Total attendances', 'Milestone', 'Email']]
         display_df.columns = ['Name', 'Attendances', 'Milestone', 'Email']
-        st.dataframe(display_df, use_container_width=True)
+        st.dataframe(display_df.sort_values('Milestone'), use_container_width=True)
 
-        ## Step 6: Download 
-        csv_data = display_df.to_csv(index=False).encode('utf-8')
+        st.divider()
+
+        # Output 2: System format for copy-pasting back into the history file
+        st.subheader("💾 Master Log Update")
+        st.write("Copy these rows or download this file to add to your 'Previous Recipients' CSV:")
+        
+        # This matches the history structure: Email, Milestone
+        log_update = new_eligible[['Email', 'Milestone']].copy()
+        st.dataframe(log_update, use_container_width=True)
+
+        csv_log = log_update.to_csv(index=False).encode('utf-8')
         st.download_button(
-            label="Download Milestone List (CSV)",
-            data=csv_data,
-            file_name='updated_milestones.csv',
+            label="Download Log Update (CSV)",
+            data=csv_log,
+            file_name='add_to_history_log.csv',
             mime='text/csv'
-        )                  
+        )                   
     else: 
         st.balloons()
-        st.success("Everyone is up to date with their milestones!")
+        st.success("Everyone is up to date with their rewards!")
 
 else: 
-    st.info("Please upload both the Booking System CSV and the Email List CSV please <3")
+    st.info("Please upload both files. Note: Your 'Previous Recipients' list needs an 'Email' and a 'Milestone' column. <3")
